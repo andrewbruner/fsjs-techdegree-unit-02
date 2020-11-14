@@ -14,13 +14,13 @@
                         <li id="prevPage" class="page-item" v-bind:class="{ disabled: currentPage == 0 }">
                             <a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
                         </li>
-                      <li class="page-item" v-for="(page, index) in pages" v-bind:key="index" v-bind:class="{ active: index == currentPage }">
-                            <a class="page-link" href="#" v-if="index != currentPage">{{ index + 1 }}</a>
+                        <li class="page-item" v-for="(page, index) in pages" v-bind:key="index" v-bind:class="{ active: index == currentPage }">
+                            <a class="page-link pageNumber" href="#" v-if="index != currentPage">{{ index + 1 }}</a>
                             <span class="page-link" v-else>{{ index + 1 }}</span>
                         </li>
-                      <li id="nextPage" class="page-item">
+                        <li id="nextPage" class="page-item">
                             <a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                      </li>
+                        </li>
                     </ul>
                 </nav>
                 
@@ -71,9 +71,16 @@
                 vm.currentPage++
             };
 
-            document.querySelector('#prevPage').addEventListener('click', prevPage)
-            document.querySelector('#nextPage').addEventListener('click', nextPage)
-            document.addEventListener('DOMContentLoaded', getUsers)
+            const pageLink = (e) => {
+                if (e.target.classList.contains('pageNumber')) {
+                    vm.currentPage = parseInt(e.target.textContent, 10) - 1;
+                }
+            };
+
+            document.querySelector('#prevPage').addEventListener('click', prevPage);
+            document.querySelector('#nextPage').addEventListener('click', nextPage);
+            document.querySelector('nav').addEventListener('click', pageLink);
+            document.addEventListener('DOMContentLoaded', getUsers);
         </script>
     </body>
 </html>
