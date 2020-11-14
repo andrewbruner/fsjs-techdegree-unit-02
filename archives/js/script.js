@@ -1,18 +1,3 @@
-// https://randomuser.me/api/?nat=us&results=500&inc=name,location,email,dob,phone,picture
-
-const getUsers = async () => {
-    await fetch('https://randomuser.me/api/?nat=us&results=500&inc=name,location,email,dob,phone,picture')
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success: ', data);
-        vm.users = data;
-    })
-    .catch(error => console.log('Error: ', error))
-};
-
-document.addEventListener('DOMContentLoaded', getUsers)
-
-/*
 // GLOBAL VARIABLES
 const masterList = document.querySelectorAll('.student-item');
 const itemsPerPage = 10;
@@ -172,4 +157,3 @@ const appendPageLinks = list => {
 document.addEventListener('DOMContentLoaded', appendSearchbox());
 document.addEventListener('DOMContentLoaded', showPage(masterList, 1));
 document.addEventListener('DOMContentLoaded', appendPageLinks(masterList));
-*/
