@@ -18,7 +18,7 @@
                             <a class="page-link pageNumber" href="#" v-if="index != currentPage">{{ index + 1 }}</a>
                             <span class="page-link" v-else>{{ index + 1 }}</span>
                         </li>
-                        <li id="nextPage" class="page-item">
+                        <li id="nextPage" class="page-item" v-bind:class="{ disabled: currentPage == pages.length - 1 }">
                             <a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
                         </li>
                     </ul>
@@ -44,7 +44,7 @@
             });
 
             const getUsers = async () => {
-                await fetch('https://randomuser.me/api/?nat=us&results=500&inc=name,location,email,dob,phone,picture')
+                await fetch('https://randomuser.me/api/?nat=us&results=505&inc=name,location,email,dob,phone,picture')
                 .then(response => response.json())
                 .then(data => {
                     console.log('Success: ', data);
@@ -52,7 +52,9 @@
                     for (let i = 0; i < vm.users.length / 25; i++) {
                         let page = []
                         for (let j = 0; j < 25; j++) {
-                            page.push(vm.users[j + (i * 25)])
+                            if (j < vm.users.length - (i * 25)) {
+                                page.push(vm.users[j + (i * 25)])
+                            }
                         }
                         vm.pages.push(page);
                     }
@@ -68,7 +70,9 @@
             };
             
             const nextPage = () => {
-                vm.currentPage++
+                if (vm.currentPage < vm.pages.length - 1) {
+                    vm.currentPage++
+                }
             };
 
             const pageLink = (e) => {
