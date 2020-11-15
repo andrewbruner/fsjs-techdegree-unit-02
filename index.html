@@ -11,6 +11,16 @@
             <div class="container">
                 <h1 class="mt-4">Random Users</h1>
 
+                <!-- API Controls -->
+                <form>
+                    <div class="form-group">
+                      <label for="numberOfResults">Number of Results</label>
+                      <input type="number" class="form-control w-25" id="numberOfResults" aria-describedby="numberOfResultsHelp">
+                      <small id="numberOfResultsHelp" class="form-text text-muted">Choose between 1 and 500</small>
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn btn-primary mb-2">Get Random Users</button>
+                </form>
+
                 <!-- Navigation -->
                 <nav class="mt-4">
                     <ul class="pagination justify-content-center text-center">
@@ -56,17 +66,18 @@
                 }
             });
 
-            const getUsers = async () => {
-                await fetch('https://randomuser.me/api/?nat=us&results=505&inc=name,location,email,dob,phone,picture')
+            const getUsers = async (numberOfUsers) => {
+                await fetch(`https://randomuser.me/api/?nat=us&results=${numberOfUsers}&inc=name,location,email,dob,phone,picture`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('Success: ', data);
                     vm.users = data.results;
-                    for (let i = 0; i < vm.users.length / 25; i++) {
+                    vm.pages = [];
+                    for (let i = 0; i < vm.users.length / 10; i++) {
                         let page = []
-                        for (let j = 0; j < 25; j++) {
-                            if (j < vm.users.length - (i * 25)) {
-                                page.push(vm.users[j + (i * 25)])
+                        for (let j = 0; j < 10; j++) {
+                            if (j < vm.users.length - (i * 10)) {
+                                page.push(vm.users[j + (i * 10)])
                             }
                         }
                         vm.pages.push(page);
@@ -94,10 +105,19 @@
                 }
             };
 
+            document.querySelector('#submitBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                const value = document.querySelector('#numberOfResults').value;
+                if (value % 1 == 0 && value > 0 && value < 501) {
+                    getUsers(value);
+                } else {
+                    console.log('error')
+                }
+            })
             document.querySelector('#prevPage').addEventListener('click', prevPage);
             document.querySelector('#nextPage').addEventListener('click', nextPage);
             document.querySelector('nav').addEventListener('click', pageLink);
-            document.addEventListener('DOMContentLoaded', getUsers);
+            document.addEventListener('DOMContentLoaded', () => getUsers('100'));
         </script>
     </body>
 </html>
