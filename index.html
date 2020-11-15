@@ -13,11 +13,14 @@
 
                 <!-- API Controls -->
                 <form>
+                    <!-- Select Number of Results -->
                     <div class="form-group">
                       <label for="numberOfResults">Number of Results</label>
                       <input type="number" pattern="[0-9]*" class="form-control w-25" id="numberOfResults" aria-describedby="numberOfResultsHelp">
                       <small id="numberOfResultsHelp" class="form-text text-muted">Choose between 1 and 500</small>
                     </div>
+
+                    <!-- Select Results per Page -->
                     <div class="form-group">
                         <label for="resultsPerPage">Results per Page</label>
                         <div class="form-group">
@@ -39,6 +42,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Submit Form -->
                     <button type="submit" id="submitBtn" class="btn btn-primary mb-2">Get Random Users</button>
                 </form>
 
@@ -78,6 +83,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
         <script>
+            // Vue Instance
             const vm = new Vue({
                 el: '#app',
                 data: {
@@ -87,6 +93,56 @@
                 }
             });
 
+            // API Controls Function
+            const submitAPI = (e) => {
+                e.preventDefault();
+
+                // Find selected number of results
+                const numberOfResults = document.querySelector('#numberOfResults').value;
+                if (numberOfResults % 1 == 0 && numberOfResults > 0 && numberOfResults < 501) {
+                    document.querySelector('#numberOfResults').value = '';
+
+                    // Find selected results per page
+                    const resultsPerPageInputs = document.querySelectorAll('input[name="resultsPerPage"]');
+                    let resultsPerPage;
+                    for (input of resultsPerPageInputs) {
+                        if (input.checked) {
+                            resultsPerPage = input.value;
+                            document.querySelector('nav').style.visibility = '';
+                            if (resultsPerPage == 'infinite') {
+                                resultsPerPage = numberOfResults;
+                                document.querySelector('nav').style.visibility = 'hidden';
+                            }
+                            input.checked = false;
+                            break;
+                        }
+                    }
+
+                    // Run API
+                    getUsers(numberOfResults, resultsPerPage);
+                } else {
+                    console.log('error')
+                }
+            };
+
+            // Navigation Functions
+            const prevPage = () => {
+                if (vm.currentPage > 0) {
+                    vm.currentPage--
+                }
+            };
+            const pageLink = (e) => {
+                if (e.target.classList.contains('pageNumber')) {
+                    vm.currentPage = parseInt(e.target.textContent, 10) - 1;
+                }
+            };
+            const nextPage = () => {
+                if (vm.currentPage < vm.pages.length - 1) {
+                    vm.currentPage++
+                }
+            };
+
+            // Get Users Function
             const getUsers = async (numberOfUsers, resultsPerPage) => {
                 await fetch(`https://randomuser.me/api/?nat=us&results=${numberOfUsers}&inc=name,location,email,dob,phone,picture`)
                 .then(response => response.json())
@@ -108,52 +164,17 @@
                 })
                 .catch(error => console.log('Error: ', error))
             };
-    
-            const prevPage = () => {
-                if (vm.currentPage > 0) {
-                    vm.currentPage--
-                }
-            };
-            
-            const nextPage = () => {
-                if (vm.currentPage < vm.pages.length - 1) {
-                    vm.currentPage++
-                }
-            };
 
-            const pageLink = (e) => {
-                if (e.target.classList.contains('pageNumber')) {
-                    vm.currentPage = parseInt(e.target.textContent, 10) - 1;
-                }
-            };
 
-            document.querySelector('#submitBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                const numberOfResults = document.querySelector('#numberOfResults').value;
-                if (numberOfResults % 1 == 0 && numberOfResults > 0 && numberOfResults < 501) {
-                    document.querySelector('#numberOfResults').value = '';
-                    const resultsPerPageInputs = document.querySelectorAll('input[name="resultsPerPage"]');
-                    let resultsPerPage = '10';
-                    for (input of resultsPerPageInputs) {
-                        if (input.checked) {
-                            resultsPerPage = input.value;
-                            document.querySelector('nav').style.visibility = '';
-                            if (resultsPerPage == 'infinite') {
-                                resultsPerPage = numberOfResults;
-                                document.querySelector('nav').style.visibility = 'hidden';
-                            }
-                            input.checked = false;
-                            break;
-                        }
-                    }
-                    getUsers(numberOfResults, resultsPerPage);
-                } else {
-                    console.log('error')
-                }
-            })
+            // API Controls Listener
+            document.querySelector('#submitBtn').addEventListener('click', submitAPI);
+
+            // Navigation Listeners
             document.querySelector('#prevPage').addEventListener('click', prevPage);
             document.querySelector('#nextPage').addEventListener('click', nextPage);
             document.querySelector('nav').addEventListener('click', pageLink);
+
+            // Page Load Listener
             document.addEventListener('DOMContentLoaded', () => getUsers('100', '10'));
         </script>
     </body>
