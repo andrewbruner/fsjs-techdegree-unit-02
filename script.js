@@ -1,124 +1,124 @@
-const vue = window.Vue;
-// Vue Instance
-const vm = new vue({
-    el: '#app',
-    data: {
-        users: null,
-        pages: [],
-        currentPage: null,
-    }
-});
-
-// API Controls Function
-const submitAPI = (e) => {
-    e.preventDefault();
-
-    // Find selected number of results
-    const numberOfResults = document.querySelector('#numberOfResults').value;
-    if (numberOfResults % 1 == 0 && numberOfResults > 0 && numberOfResults < 501) {
-        document.querySelector('#numberOfResults').value = '';
-
-        // Find selected results per page
-        const resultsPerPageInputs = document.querySelectorAll('input[name="resultsPerPage"]');
-        let resultsPerPage;
-        for (input of resultsPerPageInputs) {
-            if (input.checked) {
-                resultsPerPage = input.value;
-                document.querySelector('nav').style.visibility = '';
-                if (resultsPerPage == 'infinite') {
-                    resultsPerPage = numberOfResults;
-                    document.querySelector('nav').style.visibility = 'hidden';
-                }
-                input.checked = false;
-                break;
-            }
-        }
-
-        // Find selected sorting option
-        const sortingOptionInputs = document.querySelectorAll('input[name="sortingOption"]');
-        let sortingOption;
-        for (input of sortingOptionInputs) {
-            if (input.checked) {
-                sortingOption = input.value;
-                input.checked = false;
-                break;
-            }
-        }
-
-        // Run API
-        getUsers(numberOfResults, resultsPerPage, sortingOption);
-    } else {
-        console.log('error')
-    }
+// Default Control Options
+const defaultControlOptions = {
+    numberOfUsers: '100',   // 1-250
+    usersPerPage: '10',     // 10, 25, 50, or infinite
+    sortingOption: 'random' // random, alphLast, or alphFirst
 };
 
-// Navigation Functions
-const prevPage = () => {
+// Vue Instance
+const vm = new window.Vue({
+    el: '#app',
+    data: {
+        controls: {
+            numberOfUsers: defaultControlOptions.numberOfUsers,
+            prevNumberOfUsers: null,
+            usersPerPage: defaultControlOptions.usersPerPage,
+            sortingOption: defaultControlOptions.sortingOption,
+        },
+        users: null,
+        sortedUsers: null,
+        pages: [],
+        currentPage: null,
+
+    },
+});
+
+// Get Users Function
+const getUsers = async (getOrUpdate, numberOfUsers, usersPerPage, sortingOption) => {
+    // Get New Users
+    if (getOrUpdate == 'get') {
+        await fetch(`https://randomuser.me/api/?nat=us&results=${numberOfUsers}&inc=name,location,email,dob,phone,picture`)
+        .then(response => response.json())
+        .then(data => {
+            vm.users = data.results;
+            vm.controls.prevNumberOfUsers = numberOfUsers;
+        });
+    // Update Users
+    } else if (getOrUpdate == 'update') {
+        vm.controls.numberOfUsers = vm.controls.prevNumberOfUsers;
+    }
+    // List Users
+    // Sorting Option
+    vm.sortedUsers = vm.users;
+    if (sortingOption != 'random') {
+        let sortingObj = { primary: null, secondary: null };
+        if (sortingOption == 'alphLast') {
+            sortingObj = { primary: 'last', secondary: 'first' };
+        } else if (sortingOption == 'alphFirst') {
+            sortingObj = { primary: 'first', secondary: 'last' };
+        }
+
+        ({ primary, secondary } = sortingObj);
+
+        vm.sortedUsers.sort((a, b) => a.name[primary] < b.name[primary] ? -1 : a.name[primary] > b.name[primary] ? 1 : a.name[secondary] < b.name[secondary] ? -1 : a.name[secondary] > b.name[secondary] ? 1 : 0)
+    }
+    // Users per Page
+    vm.pages = [];
+    document.querySelector('nav').style.display = '';
+    if (usersPerPage == 'infinite') {
+        usersPerPage = vm.sortedUsers.length;
+        document.querySelector('nav').style.display = 'none';
+    }
+    const numUsersPerPage = parseInt(usersPerPage, 10);
+    for (let i = 0; i < vm.users.length / numUsersPerPage; i++) {
+        let page = []
+        for (let j = 0; j < numUsersPerPage; j++) {
+            if (j < vm.users.length - (i * numUsersPerPage)) {
+                page.push(vm.sortedUsers[j + (i * numUsersPerPage)])
+            }
+        }
+        vm.pages.push(page);
+    }
+    vm.currentPage = 0;
+};
+
+// API Controls
+document.querySelector('#numberOfUsers').addEventListener('input', (event) => vm.controls.numberOfUsers = event.target.value);
+document.querySelector('#usersPerPage').addEventListener('input', (event) => {
+    vm.controls.usersPerPage = event.target.value;
+    for (input of document.querySelectorAll('#usersPerPage input')) {
+        if (input.value == vm.controls.usersPerPage) {
+            input.checked = true;
+        } else {
+            input.checked = false;
+        }
+    }
+});
+document.querySelector('#sortingOption').addEventListener('change', (event) => {
+    vm.controls.sortingOption = event.target.value;
+    for (input of document.querySelectorAll('#sortingOption input')) {
+        if (input.value == vm.controls.sortingOption) {
+            input.checked = true;
+        } else {
+            input.checked = false;
+        }
+    }
+});
+document.querySelector('#updateUsers').addEventListener('click', (event) => {
+    event.preventDefault();
+    getUsers('update', vm.controls.numberOfUsers, vm.controls.usersPerPage, vm.controls.sortingOption);
+});
+document.querySelector('#getNewUsers').addEventListener('click', (event) => {
+    event.preventDefault();
+    getUsers('get', vm.controls.numberOfUsers, vm.controls.usersPerPage, vm.controls.sortingOption);
+});
+
+// Navigation
+document.querySelector('#prevPage').addEventListener('click', () => {
     if (vm.currentPage > 0) {
         vm.currentPage--
     }
-};
-const pageLink = (e) => {
-    if (e.target.classList.contains('pageNumber')) {
-        vm.currentPage = parseInt(e.target.textContent, 10) - 1;
+});
+document.querySelector('nav').addEventListener('click', (event) => {
+    if (event.target.classList.contains('pageNumber')) {
+        vm.currentPage = parseInt(event.target.textContent, 10) - 1;
     }
-};
-const nextPage = () => {
+});
+document.querySelector('#nextPage').addEventListener('click', () => {
     if (vm.currentPage < vm.pages.length - 1) {
         vm.currentPage++
     }
-};
+});
 
-// Get Users Function
-const getUsers = async (numberOfUsers, resultsPerPage, sortingOption) => {
-    await fetch(`https://randomuser.me/api/?nat=us&results=${numberOfUsers}&inc=name,location,email,dob,phone,picture`)
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success: ', data);
-        vm.users = data.results;
-        vm.pages = [];
-        
-        // get number of results per page
-        const numResultsPerPage = parseInt(resultsPerPage, 10);
-
-        // if sorting option is alphabetical, sort the users
-        if (sortingOption == 'alphLast' || sortingOption == 'alphFirst') {
-            let sortingObj;
-            if (sortingOption == 'alphLast') {
-                sortingObj = { primary: 'last', secondary: 'first' };
-            } else if (sortingOption == 'alphFirst') {
-                sortingObj = { primary: 'first', secondary: 'last' };
-            }
-
-            ({ primary, secondary } = sortingObj);
-
-            vm.users.sort((a, b) => a.name[primary] < b.name[primary] ? -1 : a.name[primary] > b.name[primary] ? 1 : a.name[secondary] < b.name[secondary] ? -1 : a.name[secondary] > b.name[secondary] ? 1 : 0)
-        }
-
-        // populate user pages
-        for (let i = 0; i < vm.users.length / numResultsPerPage; i++) {
-            let page = []
-            for (let j = 0; j < numResultsPerPage; j++) {
-                if (j < vm.users.length - (i * numResultsPerPage)) {
-                    page.push(vm.users[j + (i * numResultsPerPage)])
-                }
-            }
-            vm.pages.push(page);
-        }
-
-        vm.currentPage = 0;
-    })
-    .catch(error => console.log('Error: ', error))
-};
-
-
-// API Controls Listener
-document.querySelector('#submitBtn').addEventListener('click', submitAPI);
-
-// Navigation Listeners
-document.querySelector('#prevPage').addEventListener('click', prevPage);
-document.querySelector('#nextPage').addEventListener('click', nextPage);
-document.querySelector('nav').addEventListener('click', pageLink);
-
-// Page Load Listener
-document.addEventListener('DOMContentLoaded', () => getUsers('100', '10', 'random'));
+// Page Initialization
+document.addEventListener('DOMContentLoaded', () => getUsers('get', vm.controls.numberOfUsers, vm.controls.usersPerPage, vm.controls.sortingOption));

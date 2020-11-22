@@ -5,99 +5,98 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>Random Users</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <style>
+            [v-cloak] {
+                display: none;
+            }
+        </style>
     </head>
     <body>
-        <div id="app">
-            <div class="container">
-                <h1 class="mt-4">Random Users</h1>
+        <div class="container" id="app" v-cloak>
+            <h1 class="mt-4">Random Users</h1>
 
-                <!-- API Controls -->
-                <form>
-                    <!-- Select Number of Results -->
-                    <div class="form-group">
-                      <label for="numberOfResults">Number of Results</label>
-                      <input type="number" pattern="[0-9]*" class="form-control w-25" id="numberOfResults" aria-describedby="numberOfResultsHelp">
-                      <small id="numberOfResultsHelp" class="form-text text-muted">Choose between 1 and 500</small>
+            <!-- API Controls -->
+            <form>
+                <!-- Select Number of Users -->
+                <div class="form-group">
+                    <label for="numberOfUsers">Number of Users: {{ controls.numberOfUsers }}</label>
+                    <input type="range" min="5" max="250" step="5" class="form-control" id="numberOfUsers" v-model="controls.numberOfUsers">
+                </div>
+
+                <!-- Select Users per Page -->
+                <label>Users per Page</label>
+                <div class="form-group" id="usersPerPage">
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="usersPerPage10" value="10" checked>
+                        <label class="form-check-label" for="usersPerPage10">10</label>
                     </div>
-
-                    <!-- Select Results per Page -->
-                    <div class="form-group">
-                        <label for="resultsPerPage">Results per Page</label>
-                        <div class="form-group">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="resultsPerPage" id="resultsPerPage10" value="10">
-                                <label class="form-check-label" for="resultsPerPage10">10</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="resultsPerPage" id="resultsPerPage25" value="25">
-                                <label class="form-check-label" for="resultsPerPage25">25</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="resultsPerPage" id="resultsPerPage50" value="50">
-                                <label class="form-check-label" for="resultsPerPage10">50</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="resultsPerPage" id="resultsPerPageInfinite" value="infinite">
-                                <label class="form-check-label" for="resultsPerPageInfinite">Infinite Scroll</label>
-                            </div>
-                        </div>
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="usersPerPage25" value="25">
+                        <label class="form-check-label" for="usersPerPage25">25</label>
                     </div>
-
-                    <!-- Select Sorting Option -->
-                    <div class="form-group">
-                        <label for="sortingOption">Sorting</label>
-                        <div class="form-group">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="sortingOption" id="random" value="random">
-                                <label class="form-check-label" for="random">Random</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="sortingOption" id="alphLast" value="alphLast">
-                                <label class="form-check-label" for="alphLast">Last, First</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="sortingOption" id="alphFirst" value="alphFirst">
-                                <label class="form-check-label" for="alphFirst">First, Last</label>
-                            </div>
-                        </div>
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="usersPerPage50" value="50">
+                        <label class="form-check-label" for="usersPerPage50">50</label>
                     </div>
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="usersPerPageInfinite" value="infinite">
+                        <label class="form-check-label" for="usersPerPageInfinite">Infinite Scroll</label>
+                    </div>
+                </div>
 
-                    <!-- Submit Form -->
-                    <button type="submit" id="submitBtn" class="btn btn-primary mb-2">Get Random Users</button>
-                </form>
+                <!-- Select Sorting Option -->
+                <label>Sorting</label>
+                <div class="form-group" id="sortingOption">
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="random" value="random" checked>
+                        <label class="form-check-label" for="random">Random</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="alphLast" value="alphLast">
+                        <label class="form-check-label" for="alphLast">Last, First</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" id="alphFirst" value="alphFirst">
+                        <label class="form-check-label" for="alphFirst">First, Last</label>
+                    </div>
+                </div>
 
-                <!-- Navigation -->
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center text-center">
-                        <li id="prevPage" class="page-item w-100" v-bind:class="{ disabled: currentPage == 0 }">
-                            <a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-                        </li>
-                        <li class="page-item w-100" v-for="(page, index) in pages" v-if="(index > currentPage - 3 || index > pages.length - 6) && (index < currentPage + 3 || index < 5)" v-bind:key="index" v-bind:class="{ active: index == currentPage }">
-                            <a class="page-link pageNumber" href="#" v-if="index != currentPage">{{ index + 1 }}</a>
-                            <span class="page-link" v-else>{{ index + 1 }}</span>
-                        </li>
-                        <li id="nextPage" class="page-item w-100" v-bind:class="{ disabled: currentPage == pages.length - 1 }">
-                            <a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                        </li>
-                    </ul>
-                </nav>
-                
-                <!-- User List -->
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item media" v-for="(user, index) in pages[currentPage]" v-bind:key="index">
-                        <div class="media">
-                            <img class="rounded-circle mr-3" v-bind:src="user.picture.thumbnail" />
-                            <div class="media-body">
-                                <p>
-                                    <strong>{{ user.name.first }} {{ user.name.last }}</strong><br />
-                                    {{ user.email }}<br />
-                                    {{ user.phone }}
-                                </p>
-                            </div>
-                        </div>
+                <!-- Update/Submit Form -->
+                <button type="submit" class="btn btn-primary mb-2" id="updateUsers">Update Users</button>
+                <button type="submit" class="btn btn-primary mb-2" id="getNewUsers">Get New Users</button>
+            </form>
+
+            <!-- Navigation -->
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center text-center">
+                    <li id="prevPage" class="page-item w-100" v-bind:class="{ disabled: currentPage == 0 }">
+                        <a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+                    </li>
+                    <li class="page-item w-100" v-for="(page, index) in pages" v-if="(index > currentPage - 3 || index > pages.length - 6) && (index < currentPage + 3 || index < 5)" v-bind:key="index" v-bind:class="{ active: index == currentPage }">
+                        <a class="page-link pageNumber" href="#" v-if="index != currentPage">{{ index + 1 }}</a>
+                        <span class="page-link" v-else>{{ index + 1 }}</span>
+                    </li>
+                    <li id="nextPage" class="page-item w-100" v-bind:class="{ disabled: currentPage == pages.length - 1 }">
+                        <a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
                     </li>
                 </ul>
-            </div>
+            </nav>
+            
+            <!-- User List -->
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item media" v-for="(user, index) in pages[currentPage]" v-bind:key="index">
+                    <div class="media">
+                        <img class="rounded-circle mr-3" v-bind:src="user.picture.thumbnail" />
+                        <div class="media-body">
+                            <p>
+                                <strong>{{ user.name.first }} {{ user.name.last }}</strong><br />
+                                {{ user.email }}<br />
+                                {{ user.phone }}
+                            </p>
+                        </div>
+                    </div>
+                </li>
+            </ul>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
